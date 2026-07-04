@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f6feb">
+  <title>Учёт ремонтов</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🔧 Учёт ремонтов</div>
+    <nav class="nav">
+      <a data-nav="orders" href="#/orders">Заказы</a>
+      <a data-nav="clients" href="#/clients">Клиенты</a>
+      <a data-nav="analytics" href="#/analytics">Аналитика</a>
+      <a data-nav="settings" href="#/settings">Настройки</a>
+    </nav>
+    <div class="sync">
+      <span id="sync-badge" class="badge">Локально</span>
+      <button id="sync-btn" class="btn small" style="display:none">Синхронизировать</button>
+    </div>
+  </header>
+
+  <main id="view" class="container"></main>
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

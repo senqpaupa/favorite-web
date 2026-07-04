@@ -1,0 +1,18 @@
+{
+  "name": "Учёт ремонтов",
+  "short_name": "Ремонты",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#1f6feb",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
