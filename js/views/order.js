@@ -1,7 +1,7 @@
 // Карточка заказа: поля приёмки + работы/запчасти + авто-ИТОГО + статус + печать.
 // Один экран на весь цикл: принял → заполнил → готов → печать.
 import { getOrder, saveOrder, softDeleteOrder, listOrders, listClients, saveClient, getSettings } from '../db.js';
-import { newOrder, suggestNumber, totals, FLAGS, STATUSES } from '../models.js';
+import { newOrder, suggestNumber, totals, DEVICE_TYPES, STATUSES } from '../models.js';
 import { fmtMoney, num, escapeHtml, dateInputValue, todayInputValue, uuid, nowISO } from '../util.js';
 import { printDoc } from '../print.js';
 
@@ -65,8 +65,6 @@ export async function renderOrder(root, ctx, id) {
   // ---- сбор формы в объект ----
   function gather() {
     const g = (sel) => c.querySelector(sel);
-    const flags = {};
-    FLAGS.forEach((f) => (flags[f.key] = g(`#flag-${f.key}`).checked));
     const works = [...worksBody.querySelectorAll('tr')]
       .map((tr) => ({ desc: tr.querySelector('.w-desc').value.trim(), price: num(tr.querySelector('.w-price').value) }))
       .filter((w) => w.desc || w.price);
@@ -79,21 +77,13 @@ export async function renderOrder(root, ctx, id) {
       dateIn: g('#f-dateIn').value ? new Date(g('#f-dateIn').value).toISOString() : order.dateIn,
       clientName: g('#f-clientName').value.trim(),
       clientPhone: g('#f-clientPhone').value.trim(),
-      address: g('#f-address').value.trim(),
+      deviceType: g('#f-deviceType').value,
       deviceModel: g('#f-deviceModel').value.trim(),
-      imei: g('#f-imei').value.trim(),
-      serial: g('#f-serial').value.trim(),
-      batteryNo: g('#f-batteryNo').value.trim(),
       declaredFault: g('#f-declaredFault').value.trim(),
       agreedPrice: g('#f-agreedPrice').value.trim(),
       status: g('#f-status').value,
-      receiver: g('#f-receiver').value.trim(),
-      master: g('#f-master').value.trim(),
-      urgent: g('#f-urgent').checked,
-      urgentPercent: num(g('#f-urgentPercent').value),
       warrantyDays: num(g('#f-warrantyDays').value),
       note: g('#f-note').value.trim(),
-      flags,
       works,
       parts,
     };
@@ -103,7 +93,6 @@ export async function renderOrder(root, ctx, id) {
     const t = totals(gather());
     c.querySelector('#t-works').textContent = fmtMoney(t.worksSum);
     c.querySelector('#t-parts').textContent = fmtMoney(t.partsSum);
-    c.querySelector('#t-urgent').textContent = fmtMoney(t.urgentAmount);
     c.querySelector('#t-total').textContent = fmtMoney(t.total);
   }
   c.querySelectorAll('input, select, textarea').forEach((i) => i.addEventListener('input', recalc));
@@ -174,9 +163,7 @@ export async function renderOrder(root, ctx, id) {
 }
 
 function template(o, shop) {
-  const flags = FLAGS.map(
-    (f) => `<label class="chk"><input type="checkbox" id="flag-${f.key}" ${o.flags && o.flags[f.key] ? 'checked' : ''}> ${f.label}</label>`
-  ).join('');
+  const deviceTypeOpts = DEVICE_TYPES.map((t) => `<option value="${escapeHtml(t)}" ${o.deviceType === t ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
   const statusOpts = STATUSES.map((s) => `<option value="${s.key}" ${o.status === s.key ? 'selected' : ''}>${s.label}</option>`).join('');
   return `
     <div class="order-head">
@@ -206,26 +193,13 @@ function template(o, shop) {
           <label>Фамилия / ФИО<input id="f-clientName" value="${escapeHtml(o.clientName)}"></label>
           <label>Телефон<input id="f-clientPhone" value="${escapeHtml(o.clientPhone)}"></label>
         </div>
-        <label>Адрес<input id="f-address" value="${escapeHtml(o.address)}"></label>
         <div class="f-row">
+          <label>Тип техники<select id="f-deviceType">${deviceTypeOpts}</select></label>
           <label>Модель<input id="f-deviceModel" value="${escapeHtml(o.deviceModel)}"></label>
-          <label>IMEI<input id="f-imei" value="${escapeHtml(o.imei)}"></label>
-        </div>
-        <div class="f-row">
-          <label>S/N<input id="f-serial" value="${escapeHtml(o.serial)}"></label>
-          <label>№ АКБ<input id="f-batteryNo" value="${escapeHtml(o.batteryNo)}"></label>
         </div>
         <label>Заявленная неисправность<textarea id="f-declaredFault" rows="2">${escapeHtml(o.declaredFault)}</textarea></label>
         <label>Согласование цены<input id="f-agreedPrice" value="${escapeHtml(o.agreedPrice)}"></label>
-        <div class="flags">${flags}</div>
-        <div class="f-row">
-          <label>Приёмщик<input id="f-receiver" value="${escapeHtml(o.receiver)}"></label>
-          <label>Мастер<input id="f-master" value="${escapeHtml(o.master)}"></label>
-        </div>
-        <div class="f-row">
-          <label class="chk-inline"><input type="checkbox" id="f-urgent" ${o.urgent ? 'checked' : ''}> Срочный, %<input id="f-urgentPercent" class="mini" inputmode="decimal" value="${escapeHtml(o.urgentPercent)}"></label>
-          <label>Гарантия, дней<input id="f-warrantyDays" class="mini" inputmode="decimal" value="${escapeHtml(o.warrantyDays)}"></label>
-        </div>
+        <label>Гарантия, дней<input id="f-warrantyDays" class="mini" inputmode="decimal" value="${escapeHtml(o.warrantyDays)}"></label>
         <label>Примечание<textarea id="f-note" rows="2">${escapeHtml(o.note)}</textarea></label>
       </div>
 
@@ -241,7 +215,6 @@ function template(o, shop) {
         <div class="totals">
           <div>Работы: <b id="t-works">0 ₽</b></div>
           <div>Запчасти: <b id="t-parts">0 ₽</b></div>
-          <div>Срочность: <b id="t-urgent">0 ₽</b></div>
           <div class="grand">ИТОГО: <b id="t-total">0 ₽</b></div>
         </div>
 

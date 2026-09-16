@@ -9,25 +9,29 @@ export async function renderSettings(root, ctx) {
   c.innerHTML = `
     <div class="grid2">
       <div class="card">
-        <h3>Реквизиты мастерской (в шапке чека)</h3>
-        <label>Название / ИП<input id="s-ownerName" value="${escapeHtml(s.ownerName)}"></label>
+        <h3>Реквизиты (шапка квитанции)</h3>
+        <div class="f-row">
+          <label>Название магазина<input id="s-shopName" value="${escapeHtml(s.shopName)}"></label>
+          <label>ИП (ФИО)<input id="s-ownerFull" value="${escapeHtml(s.ownerFull)}"></label>
+        </div>
+        <label>Контакты (телефоны/адреса, каждый с новой строки)<textarea id="s-headerContacts" rows="2">${escapeHtml(s.headerContacts)}</textarea></label>
+        <label>Часы работы (с новой строки)<textarea id="s-headerHours" rows="2">${escapeHtml(s.headerHours)}</textarea></label>
         <div class="f-row">
           <label>ИНН<input id="s-inn" value="${escapeHtml(s.inn)}"></label>
           <label>ОГРН<input id="s-ogrn" value="${escapeHtml(s.ogrn)}"></label>
         </div>
         <label>Свидетельство<input id="s-cert" value="${escapeHtml(s.cert)}"></label>
-        <label>Адрес<input id="s-address" value="${escapeHtml(s.address)}"></label>
-        <label>Телефон<input id="s-phone" value="${escapeHtml(s.phone)}"></label>
         <div class="f-row">
           <label>Приёмщик по умолчанию<input id="s-receiverDefault" value="${escapeHtml(s.receiverDefault)}"></label>
           <label>Гарантия по умолч., дней<input id="s-warrantyDefaultDays" class="mini" value="${escapeHtml(s.warrantyDefaultDays)}"></label>
         </div>
-        <label>Формат печати по умолчанию
+        <label>Формат печати акта/чека
           <select id="s-printFormat">
             <option value="a4" ${s.printFormat === 'a4' ? 'selected' : ''}>A4 лист</option>
             <option value="thermal" ${s.printFormat === 'thermal' ? 'selected' : ''}>Термочек 80мм</option>
           </select>
         </label>
+        <label>Правила на квитанции (каждый пункт с новой строки)<textarea id="s-terms" rows="8">${escapeHtml(s.terms)}</textarea></label>
         <div class="actions"><button id="s-save" class="btn primary">💾 Сохранить реквизиты</button></div>
       </div>
 
@@ -55,9 +59,12 @@ export async function renderSettings(root, ctx) {
 
   c.querySelector('#s-save').addEventListener('click', async () => {
     await saveSettings({
-      ownerName: val('#s-ownerName'), inn: val('#s-inn'), ogrn: val('#s-ogrn'), cert: val('#s-cert'),
-      address: val('#s-address'), phone: val('#s-phone'), receiverDefault: val('#s-receiverDefault'),
+      shopName: val('#s-shopName'), ownerFull: val('#s-ownerFull'),
+      headerContacts: val('#s-headerContacts'), headerHours: val('#s-headerHours'),
+      inn: val('#s-inn'), ogrn: val('#s-ogrn'), cert: val('#s-cert'),
+      receiverDefault: val('#s-receiverDefault'),
       warrantyDefaultDays: val('#s-warrantyDefaultDays'), printFormat: c.querySelector('#s-printFormat').value,
+      terms: val('#s-terms'),
     });
     ctx.toast('Реквизиты сохранены');
   });

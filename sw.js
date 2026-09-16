@@ -1,5 +1,5 @@
 // Service worker: кэширует оболочку приложения, чтобы работало без интернета.
-const CACHE = 'favorie-v1';
+const CACHE = 'favorie-v2';
 const ASSETS = [
   './',
   './index.html',

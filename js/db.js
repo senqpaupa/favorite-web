@@ -63,7 +63,8 @@ async function getOne(store, id) {
 // ---- Настройки ----
 export async function getSettings() {
   const s = await getOne('settings', 'shop');
-  if (s) return s;
+  // Подмешиваем значения по умолчанию, чтобы новые поля появлялись у уже сохранённых настроек.
+  if (s) return { ...defaultSettings(), ...s };
   const def = defaultSettings();
   await put('settings', def);
   return def;
