@@ -55,7 +55,7 @@ function intakeCopy(order, shop, label) {
 
     ${fld('Заявленная неисправность', order.declaredFault, true)}
     ${fld('Согласование цены', order.agreedPrice, true)}
-    ${fld('Примечание', order.note)}
+    <div class="f note"><span class="l">Примечание:</span> <span>${escapeHtml(order.note || '')}</span></div>
 
     <div class="terms">${termsHtml(shop)}</div>
     <div class="footreq">${reqFooter(shop)}</div>
@@ -81,10 +81,12 @@ const intakeCss = `
   .qshop .hours { margin-top: 2px; }
   .cols { display: flex; gap: 20px; margin: 4px 0; }
   .col { flex: 1; }
-  .f { margin: 2px 0; }
+  .f { margin: 3px 0; font-size: 12px; }
   .f .l { color: #000; }
+  .note { font-size: 13px; margin-top: 5px; }
+  .note .l { font-weight: 700; }
   .u { border-bottom: 1px solid #000; font-weight: 600; padding: 0 2px; }
-  .terms { margin: 6px 0; font-size: 8px; line-height: 1.25; color: #111; }
+  .terms { margin: 6px 0; font-size: 10px; line-height: 1.3; color: #111; }
   .term { margin: 1px 0; }
   .footreq { font-size: 8px; margin-bottom: 6px; }
   .sign { font-size: 10px; }
