@@ -1,5 +1,7 @@
-// Service worker: кэширует оболочку приложения, чтобы работало без интернета.
-const CACHE = 'favorie-v2';
+// Service worker: кэширует оболочку приложения для оффлайна.
+// Стратегия «сначала сеть»: при наличии интернета всегда берём свежую версию,
+// кэш используется только как запасной вариант, когда сети нет.
+const CACHE = 'favorie-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -34,12 +36,18 @@ self.addEventListener('fetch', (e) => {
   // Запросы к Supabase не кэшируем — всегда в сеть.
   if (url.pathname.includes('/rest/v1/')) return;
   if (e.request.method !== 'GET') return;
-  // Cache-first для своих ассетов, иначе сеть с откатом в кэш.
+  // Network-first: пробуем сеть (свежая версия), обновляем кэш; если сети нет — отдаём из кэша.
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-      const copy = res.clone();
-      if (url.origin === location.origin) caches.open(CACHE).then((c) => c.put(e.request, copy));
-      return res;
-    }).catch(() => caches.match('./index.html')))
+    fetch(e.request)
+      .then((res) => {
+        if (url.origin === location.origin && res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      })
+      .catch(() =>
+        caches.match(e.request).then((hit) => hit || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined))
+      )
   );
 });
