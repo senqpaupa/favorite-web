@@ -1,6 +1,7 @@
 // Оболочка приложения: навигация, простой hash-роутер, статус синхронизации.
 import { getSettings } from './db.js';
 import { isConfigured, syncNow } from './sync.js';
+import { APP_VERSION } from './version.js';
 import { renderOrders } from './views/orders.js';
 import { renderOrder } from './views/order.js';
 import { renderClients, renderClientCard } from './views/clients.js';
@@ -105,6 +106,7 @@ async function autoSync() {
 }
 
 function boot() {
+  document.getElementById('app-version').textContent = 'v' + APP_VERSION;
   document.getElementById('sync-btn').addEventListener('click', doSync);
   window.addEventListener('hashchange', route);
   window.addEventListener('online', () => { updateSyncBadge(); autoSync(); });

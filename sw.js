@@ -1,7 +1,7 @@
 // Service worker: кэширует оболочку приложения для оффлайна.
 // Стратегия «сначала сеть»: при наличии интернета всегда берём свежую версию,
 // кэш используется только как запасной вариант, когда сети нет.
-const CACHE = 'favorie-v4';
+const CACHE = 'favorie-2026.09.24';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './css/styles.css',
   './icons/icon.svg',
   './js/app.js',
+  './js/version.js',
   './js/db.js',
   './js/models.js',
   './js/util.js',
