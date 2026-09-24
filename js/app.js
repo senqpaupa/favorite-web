@@ -114,9 +114,21 @@ function boot() {
   autoSync();
   setInterval(autoSync, 180000);
 
-  // Регистрация service worker для оффлайна (не критично, если не выйдет).
+  // Регистрация service worker для оффлайна + авто-обновление.
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    // Когда активируется новая версия SW — один раз перезагружаем страницу,
+    // чтобы пользователь сразу увидел свежую версию (без ручной очистки кэша).
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloaded) return;
+      reloaded = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      reg.update(); // сразу проверяем, нет ли новой версии
+      // и проверяем при каждом возврате на вкладку/окно
+      window.addEventListener('focus', () => reg.update());
+    }).catch(() => {});
   }
 }
 
