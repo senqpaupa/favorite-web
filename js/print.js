@@ -175,8 +175,15 @@ function openAndPrint(html) {
   w.document.open();
   w.document.write(html);
   w.document.close();
-  w.onload = () => { w.focus(); w.print(); };
-  setTimeout(() => { try { w.focus(); w.print(); } catch (_) {} }, 500);
+  // Печатаем ровно один раз: по onload, а таймер — запасной вариант, если onload не сработает.
+  let printed = false;
+  const doPrint = () => {
+    if (printed) return;
+    printed = true;
+    try { w.focus(); w.print(); } catch (_) {}
+  };
+  w.onload = doPrint;
+  setTimeout(doPrint, 800);
 }
 
 // kind: 'intake' | 'act'; format: 'a4' | 'thermal' (только для act; квитанция всегда A4 в 2 копии)
